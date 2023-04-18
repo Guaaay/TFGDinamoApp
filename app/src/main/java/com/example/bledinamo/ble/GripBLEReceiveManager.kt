@@ -1,21 +1,13 @@
 package com.example.bledinamo.ble
 
-import CCCD_DESCRIPTOR_UUID
 import android.annotation.SuppressLint
-import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothGatt
-import android.bluetooth.BluetoothGattCallback
-import android.bluetooth.BluetoothGattCharacteristic
-import android.bluetooth.BluetoothGattDescriptor
-import android.bluetooth.BluetoothProfile
+import android.bluetooth.*
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.os.Build
 import android.util.Log
-import android.view.KeyEvent.DispatcherState
-import androidx.annotation.RequiresApi
 import com.example.bledinamo.data.ConnectionState
 import com.example.bledinamo.data.GripReceiveManager
 import com.example.bledinamo.data.GripResult
@@ -24,9 +16,11 @@ import isIndicatable
 import isNotifiable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import printGattTable
+import printProperties
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.*
@@ -41,6 +35,7 @@ class GripBLEReceiveManager @Inject constructor(
     private val DEVICE_NAME = "dinamo"
     private val GRIP_SERVICE_UUID="0000a200-0000-1000-8000-00805f9b34fb"
     private val GRIP_CHARACTERISTIC_UUID="0000a201-0000-1000-8000-00805f9b34fb"
+    private val CCCD_DESCRIPTOR_UUID = "00002902-0000-1000-8000-00805f9b34fb"
 
     override val data: MutableSharedFlow<Resource<GripResult>> = MutableSharedFlow()
 
@@ -60,6 +55,7 @@ class GripBLEReceiveManager @Inject constructor(
 
     private val scanCallback = object : ScanCallback(){
         override fun onScanResult(callbackType : Int, result: ScanResult){
+            Log.d("Receivenager", "device: ${result.device.name}")
             if(result.device.name == DEVICE_NAME){
                 coroutineScope.launch {
                     data.emit(Resource.Loading(message = "Conectando al dispositivo"))
@@ -113,7 +109,8 @@ class GripBLEReceiveManager @Inject constructor(
                 coroutineScope.launch {
                     data.emit(Resource.Loading(message = "Ajustando espacio MTU..."))
                 }
-                requestMtu(517)
+                Log.d("BLEReceiveManager", "Requesting MTU")
+                requestMtu(500)
             }
         }
 
@@ -121,6 +118,7 @@ class GripBLEReceiveManager @Inject constructor(
             val characteristic = findCharacteristic(GRIP_SERVICE_UUID,GRIP_CHARACTERISTIC_UUID)
             if(characteristic == null){
                 coroutineScope.launch {
+                    Log.d("BLEReceiveManager", "No encuentra característica")
                     data.emit(Resource.Error(errorMessage = "No se pudo encontrar el servicio del dinamómetro"))
                 }
                 return
@@ -130,13 +128,13 @@ class GripBLEReceiveManager @Inject constructor(
 
         override fun onCharacteristicChanged(
             gatt: BluetoothGatt,
-            characteristic: BluetoothGattCharacteristic,
-            value: ByteArray,
+            characteristic: BluetoothGattCharacteristic
         ) {
+            Log.d("BLEReceiveManager", "Cambio característica")
             when(characteristic.uuid){
                 UUID.fromString(GRIP_CHARACTERISTIC_UUID) -> {
-                    val grip : GripResult= GripResult(
-                        load = ByteBuffer.wrap(value).order(ByteOrder.LITTLE_ENDIAN).float,
+                    val grip = GripResult(
+                        load = ByteBuffer.wrap(characteristic.value).order(ByteOrder.LITTLE_ENDIAN).float,
                         connectionState = ConnectionState.Connected)
                     Log.d("GripBLEReceiveManager",grip.load.toString())
                     coroutineScope.launch{
@@ -148,14 +146,35 @@ class GripBLEReceiveManager @Inject constructor(
                 else -> Unit
             }
         }
+
+        override fun onCharacteristicWrite(
+            gatt: BluetoothGatt?,
+            characteristic: BluetoothGattCharacteristic?,
+            status: Int
+        ) {
+            super.onCharacteristicWrite(gatt, characteristic, status)
+            Log.d(
+                "BLEReceiveManager",
+                "onCharacteristicWrite :" + if (status == BluetoothGatt.GATT_SUCCESS) "Success" else "false"
+            )
+        }
+        override fun onDescriptorWrite(gatt: BluetoothGatt, descriptor: BluetoothGattDescriptor, status: Int) {
+            super.onDescriptorWrite(gatt, descriptor, status)
+            Log.d(
+                "BLEReceiveManager",
+                "onDescriptorWrite :" + if (status == BluetoothGatt.GATT_SUCCESS) "Success" else "false"
+            )
+
+        }
     }
+
     private fun enableNotification(characteristic: BluetoothGattCharacteristic){
+        Log.d("BLEReceiveManager","Enable notification ${characteristic.printProperties()}")
         val ccdUuid = UUID.fromString(CCCD_DESCRIPTOR_UUID)
         val payload = when {
             characteristic.isIndicatable() -> BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
             characteristic.isNotifiable() -> BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
             else -> return
-
         }
 
         characteristic.getDescriptor(ccdUuid)?.let { cccdDescriptor ->
@@ -163,22 +182,26 @@ class GripBLEReceiveManager @Inject constructor(
                 Log.d("BLEReceiveManager","Notificación de características falló")
                 return
             }
+
             writeDescription(cccdDescriptor, payload)
         }
+
+
     }
 
 
     private fun writeDescription(descriptor: BluetoothGattDescriptor, payload : ByteArray){
+        //Log.d("BLEReceiveManager","Attempting to write to descriptor")
+        coroutineScope.launch {
+            data.emit(Resource.Loading(message = "Activando notificaciones..."))
+        }
         gatt?.let{ gatt ->
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                gatt.writeDescriptor(descriptor,payload)
-            }
 
-            else @Suppress("DEPRECATION"){
-                descriptor.value = payload
-                gatt.writeDescriptor(descriptor)
-            }
+            Log.d("BLEReceiveManager","Written $payload to descriptor < TIRAMISU")
+            descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+            gatt.writeDescriptor(descriptor)
+
         }?:  error("Not connected to a BLE device")
     }
     private fun findCharacteristic(serviceUUID: String, characteristicsUUID: String) : BluetoothGattCharacteristic?{

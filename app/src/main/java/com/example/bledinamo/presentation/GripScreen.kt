@@ -1,6 +1,7 @@
 package com.example.bledinamo.presentation
 
 import android.bluetooth.BluetoothAdapter
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -17,6 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -29,6 +32,8 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
 
 @OptIn(ExperimentalPermissionsApi::class)
+//@PreviewParameter
+//@Preview(showBackground = true)
 @Composable
 fun GripScreen(
     onBluetoothStateChanged:() -> Unit,
@@ -53,7 +58,9 @@ fun GripScreen(
             val observer = LifecycleEventObserver {_,event ->
                 if(event == Lifecycle.Event.ON_START){
                     permissionState.launchMultiplePermissionRequest()
+                    Log.d("GripScreen","Todos los permisos pedidos")
                     if(permissionState.allPermissionsGranted && bleConnectionState == ConnectionState.Disconnected){
+                        Log.d("GripScreen","Todos los permisos otorgados")
                         viewModel.reconnect()
                     }
                 }
@@ -118,6 +125,18 @@ fun GripScreen(
                     modifier = Modifier.padding(10.dp),
                     textAlign = TextAlign.Center,
                 )
+                Button(
+                    onClick = {
+                        permissionState.launchMultiplePermissionRequest()
+                        Log.d("GripScreen", "Launched permissions")
+                        if(permissionState.allPermissionsGranted && bleConnectionState == ConnectionState.Disconnected){
+
+                            viewModel.reconnect()
+                        }
+                    }
+                ) {
+                    Text(text = "Pedir permisos")
+                }
             }
             else if(viewModel.errorMessage != null){
                 Column (
@@ -149,6 +168,13 @@ fun GripScreen(
                         text = "Carga: ${viewModel.load}",
                         style = MaterialTheme.typography.h6
                     )
+                }
+            }
+            else if(bleConnectionState == ConnectionState.Disconnected){
+                Button(onClick = {
+                    viewModel.initializeConnection()
+                }) {
+                    Text("Initialize again")
                 }
             }
         }
