@@ -130,13 +130,13 @@ class GripBLEReceiveManager @Inject constructor(
             gatt: BluetoothGatt,
             characteristic: BluetoothGattCharacteristic
         ) {
-            Log.d("BLEReceiveManager", "Cambio característica")
+            //Log.d("BLEReceiveManager", "Cambio característica")
             when(characteristic.uuid){
                 UUID.fromString(GRIP_CHARACTERISTIC_UUID) -> {
                     val grip = GripResult(
                         load = ByteBuffer.wrap(characteristic.value).order(ByteOrder.LITTLE_ENDIAN).float,
                         connectionState = ConnectionState.Connected)
-                    Log.d("GripBLEReceiveManager",grip.load.toString())
+                    //Log.d("GripBLEReceiveManager",grip.load.toString())
                     coroutineScope.launch{
                         data.emit(
                             Resource.Success(data = grip)

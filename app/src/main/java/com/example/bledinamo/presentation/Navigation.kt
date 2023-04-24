@@ -20,11 +20,18 @@ fun Navigation(
                 onBluetoothStateChanged
             )
         }
+        composable(Screen.GripGraph.route){
+            GripGraph(
+                onBluetoothStateChanged
+            )
+        }
     }
 }
 
 sealed class Screen(val route:String){
     object StartScreen:Screen("start_screen")
     object GripScreen:Screen("grip_screen")
+
+    object GripGraph:Screen("grip_graph")
 
 }

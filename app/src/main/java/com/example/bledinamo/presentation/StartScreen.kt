@@ -32,7 +32,7 @@ fun StartScreen(
                 .background(Color.Blue, CircleShape)
                 .clickable {
                     //Navigate
-                    navController.navigate(Screen.GripScreen.route){
+                    navController.navigate(Screen.GripGraph.route){
                         popUpTo(Screen.StartScreen.route){
                             inclusive = true
                         }
