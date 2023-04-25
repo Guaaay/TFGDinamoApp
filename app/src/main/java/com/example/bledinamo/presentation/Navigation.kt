@@ -12,13 +12,8 @@ fun Navigation(
     val navController = rememberNavController()
     
     NavHost(navController = navController, startDestination = Screen.StartScreen.route ){
-        composable(Screen.StartScreen.route){
+        composable(Screen.StartScreen.route) {
             StartScreen(navController = navController)
-        }
-        composable(Screen.GripScreen.route){
-            GripScreen(
-                onBluetoothStateChanged
-            )
         }
         composable(Screen.GripGraph.route){
             GripGraph(
