@@ -25,7 +25,9 @@ fun Navigation(
 
 sealed class Screen(val route:String){
     object StartScreen:Screen("start_screen")
-    object GripScreen:Screen("grip_screen")
+    object ProfileListScreen:Screen("profile_list_screen")
+
+    object ProfileScreen:Screen("profile_screen")
 
     object GripGraph:Screen("grip_graph")
 

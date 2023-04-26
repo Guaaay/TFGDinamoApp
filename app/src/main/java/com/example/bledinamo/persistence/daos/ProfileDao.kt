@@ -16,7 +16,11 @@ interface ProfileDao {
     @Delete
     fun deleteProfile(vararg profiles: Profile)
 
+    @Query("SELECT * FROM Profile WHERE name LIKE :name")
+    fun getProfile(name: String): List<Profile>
+    @Query("SELECT * FROM Profile WHERE name LIKE :name")
+    fun getProfileWithGrips(name: String): List<ProfileWithMeasurements>
     @Transaction
     @Query("SELECT * FROM Profile")
-    fun getProfileWithGripMeasurements(): List<ProfileWithMeasurements>
+    fun getProfilesWithGripMeasurements(): List<ProfileWithMeasurements>
 }
