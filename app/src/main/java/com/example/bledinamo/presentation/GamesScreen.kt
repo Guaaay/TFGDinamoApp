@@ -18,7 +18,7 @@ import androidx.navigation.NavController
 import com.example.bledinamo.R
 
 @Composable
-fun ProfileList(
+fun GamesScreen(
     navController: NavController,
     viewModel: ProfilesViewModel = hiltViewModel()
 ) {
@@ -30,7 +30,7 @@ fun ProfileList(
             .wrapContentSize(Alignment.Center)
     ) {
         Text(
-            text = "Profile Screen",
+            text = "Games Screen",
             fontWeight = FontWeight.Bold,
             color = Color.White,
             modifier = Modifier.align(Alignment.CenterHorizontally),
@@ -40,7 +40,3 @@ fun ProfileList(
     }
 }
 
-@Composable
-fun profilePreview(){
-
-}

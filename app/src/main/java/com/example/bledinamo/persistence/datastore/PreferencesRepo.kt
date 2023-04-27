@@ -13,8 +13,9 @@ import javax.inject.Inject
 
 val Context.dataStore by preferencesDataStore(name = "settings")
 
-class PreferencesRepo(@Inject private val database: AppDatabase,
-                      private val context: Context) {
+class PreferencesRepo @Inject constructor(
+    var database: AppDatabase,
+    context: Context) {
     private val dataStore = context.dataStore
 
     // Define a key for your data

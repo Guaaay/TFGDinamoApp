@@ -1,11 +1,14 @@
 package com.example.bledinamo.presentation
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.BottomNavigation
+import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -16,11 +19,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.bledinamo.presentation.bottomNav.DinamoBottomNavigation
 
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun StartScreen(
-    navController: NavController
+    navController: NavController,
 ){
+
+
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -32,8 +39,8 @@ fun StartScreen(
                 .background(Color.Blue, CircleShape)
                 .clickable {
                     //Navigate
-                    navController.navigate(Screen.GripGraph.route){
-                        popUpTo(Screen.StartScreen.route){
+                    navController.navigate(Screen.GripGraph.route) {
+                        popUpTo(Screen.StartScreen.route) {
                             inclusive = true
                         }
                     }
@@ -48,4 +55,6 @@ fun StartScreen(
             )
         }
     }
+
+
 }
