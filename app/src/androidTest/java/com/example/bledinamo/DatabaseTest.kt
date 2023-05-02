@@ -1,5 +1,6 @@
 package com.example.bledinamo
 
+import android.util.Log
 import androidx.room.Room
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -24,13 +25,16 @@ class DatabaseTest {
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
         val db = Room.databaseBuilder(
             appContext,
-            AppDatabase::class.java, "database-name"
+            AppDatabase::class.java, "test-database"
         ).build()
         val profileDao = db.profileDao()
-        val newProfile = Profile(name = "juanjo", age = 45, sex = "M")
+        var newProfile = Profile(name = "juanjo", age = 45, sex = "M")
         profileDao.createProfile(newProfile)
-        val perfiles = profileDao.getProfileWithGripMeasurements()
-        assertEquals(perfiles.last().profile.name.toString(),"juanjo")
+        newProfile = Profile(name = "martina", age = 24, sex = "F")
+        profileDao.createProfile(newProfile)
+        val perfiles = profileDao.getProfilesWithGripMeasurements()
+        Log.d("TEST:" ,perfiles.toString())
+        assertEquals(perfiles.first().profile.name,"juanjo")
     }
 
 }

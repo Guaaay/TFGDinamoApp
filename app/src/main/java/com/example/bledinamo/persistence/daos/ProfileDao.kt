@@ -7,7 +7,8 @@ import com.example.bledinamo.persistence.entities.ProfileWithMeasurements
 
 @Dao
 interface ProfileDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Transaction
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     fun createProfile(vararg profile: Profile)
 
     @Update

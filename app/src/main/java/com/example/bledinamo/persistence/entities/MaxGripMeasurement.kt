@@ -8,7 +8,7 @@ import java.time.LocalDateTime
 data class MaxGripMeasurement (
     @PrimaryKey(autoGenerate = true)
     val measurementId: Int,
-    val profileCreatorId: Int,
+    val profileCreatorName: String,
     val measurement: Float,
     val dateTaken: LocalDateTime,
 )

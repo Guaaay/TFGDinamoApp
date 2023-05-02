@@ -40,7 +40,7 @@ fun StartScreen(
                 .clickable {
                     //Navigate
                     navController.navigate(Screen.GripGraph.route) {
-                        popUpTo(Screen.StartScreen.route) {
+                        popUpTo(BottomNavScreen.Home.route) {
                             inclusive = true
                         }
                     }

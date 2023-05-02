@@ -4,11 +4,11 @@ import androidx.room.*
 
 @Entity
 data class Profile(
-    @PrimaryKey(autoGenerate = true)
-    val profileId: Int = 0,
+    @PrimaryKey
     val name: String,
     val age:Int,
     val sex:String,
+    val description:String,
 
 )
 
@@ -16,8 +16,8 @@ data class Profile(
 data class ProfileWithMeasurements(
     @Embedded val profile: Profile,
     @Relation(
-        parentColumn = "profileId",
-        entityColumn = "profileCreatorId"
+        parentColumn = "name",
+        entityColumn = "profileCreatorName"
     )
     val measurements: List<MaxGripMeasurement>
 )

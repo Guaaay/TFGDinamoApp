@@ -117,6 +117,8 @@ fun GripGraph(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
+            val onBackground = MaterialTheme.colors.onBackground
+            val onBackgroundGray = onBackground.copy(0.4f)
 
             Column(verticalArrangement = Arrangement.Center,horizontalAlignment = Alignment.CenterHorizontally){
                 Canvas(
@@ -158,7 +160,7 @@ fun GripGraph(
                                 x = canvasWidth,
                                 y = i * canvasHeight / numIntervals
                             ),
-                            color = Color.Gray,
+                            color = onBackgroundGray,
                             strokeWidth = Stroke.HairlineWidth,
                         )
                         j -= 1
@@ -176,12 +178,13 @@ fun GripGraph(
                                     x = xPos1+widthOffset,
                                     y = size.height
                                 ),
-                                color = Color.Gray,
+                                color = onBackgroundGray,
                                 strokeWidth = Stroke.HairlineWidth,
                             )
                         }
 
                         if (index < buffer.size - 1) {
+
                             drawLine(
                                 start = Offset(
                                     x = xPos1+widthOffset,
@@ -191,7 +194,7 @@ fun GripGraph(
                                     x = xPos2+widthOffset,
                                     y = calcY(maxVal, canvasHeight, buffer[index + 1])
                                 ),
-                                color = Color.Black,
+                                color = onBackground,
                                 strokeWidth = Stroke.DefaultMiter,
                             )
 

@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.bledinamo.R
+import com.example.bledinamo.presentation.profiles.ProfilesViewModel
 
 @Composable
 fun GamesScreen(

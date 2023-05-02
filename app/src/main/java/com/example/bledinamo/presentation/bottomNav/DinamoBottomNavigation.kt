@@ -1,10 +1,7 @@
 package com.example.bledinamo.presentation.bottomNav
 
 import android.annotation.SuppressLint
-import androidx.compose.material.BottomNavigation
-import androidx.compose.material.BottomNavigationItem
-import androidx.compose.material.Icon
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
@@ -23,8 +20,8 @@ fun DinamoBottomNavigation(navController: NavController) {
         BottomNavScreen.Profiles,
     )
     BottomNavigation(
-        backgroundColor = Color.White,
-        contentColor = Color.Black
+        backgroundColor = MaterialTheme.colors.primary,
+        contentColor = MaterialTheme.colors.secondary
     ) {
         val navBackStackEntry = navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry.value?.destination?.route
@@ -33,12 +30,12 @@ fun DinamoBottomNavigation(navController: NavController) {
                 icon = { Icon(item.icon,item.icon.name)} ,
                 label = { Text(text = item.title,
                     fontSize = 9.sp) },
-                selectedContentColor = Color.Black,
-                unselectedContentColor = Color.Black.copy(0.4f),
+                selectedContentColor = MaterialTheme.colors.onPrimary,
+                unselectedContentColor = MaterialTheme.colors.onPrimary.copy(0.4f),
                 alwaysShowLabel = true,
-                selected = currentRoute == item.screen_route,
+                selected = currentRoute == item.route,
                 onClick = {
-                    navController.navigate(item.screen_route) {
+                    navController.navigate(item.route) {
 
                         navController.graph.startDestinationRoute?.let { screen_route ->
                             popUpTo(screen_route) {

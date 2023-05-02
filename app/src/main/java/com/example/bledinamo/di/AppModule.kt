@@ -37,7 +37,7 @@ object AppModule {
     fun provideAppDatabase(
         @ApplicationContext context: Context
     ):AppDatabase{
-        return Room.databaseBuilder(context,AppDatabase::class.java, "profile_database")
+        return Room.databaseBuilder(context,AppDatabase::class.java, "test-database")
                 .build()
 
     }
