@@ -68,9 +68,7 @@ fun GripGraph(
             val observer = LifecycleEventObserver { _, event ->
                 if (event == Lifecycle.Event.ON_START) {
                     permissionState.launchMultiplePermissionRequest()
-                    Log.d("GripScreen", "Todos los permisos pedidos")
                     if (permissionState.allPermissionsGranted && bleConnectionState == ConnectionState.Disconnected) {
-                        Log.d("GripScreen", "Todos los permisos otorgados")
                         viewModel.reconnect()
                     }
                 }
@@ -95,6 +93,7 @@ fun GripGraph(
             }
         }
     }
+
     if (bleConnectionState == ConnectionState.Connected) {
         //Graph
         //Log.d("GripGraph","Updated value")

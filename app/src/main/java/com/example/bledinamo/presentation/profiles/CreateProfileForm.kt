@@ -20,12 +20,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.bledinamo.R
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
-fun CreateProfileForm(navController: NavController, viewModel : ProfilesViewModel = hiltViewModel()){
+fun CreateProfileForm(navController: NavController, viewModel : ProfilesListViewModel = hiltViewModel()){
 
     Scaffold(topBar = {
         TopAppBar(
@@ -102,11 +103,11 @@ fun CreateProfileForm(navController: NavController, viewModel : ProfilesViewMode
                 )
                 Spacer(Modifier.padding(15.dp))
                 var error = false
-                var res : FormResultMessage = viewModel.formResult
+
                 if(!viewModel.validatingForm && viewModel.allProfiles != null){
                     Button(onClick = {
                         viewModel.createProfile()
-                        if(res.message == "Success"){
+                        if(viewModel.formResult.message == "success"){
                             navController.popBackStack()
                         }
                         else{
@@ -122,10 +123,10 @@ fun CreateProfileForm(navController: NavController, viewModel : ProfilesViewMode
                     viewModel.getProfiles()
                     CircularProgressIndicator()
                 }
-                if(res.message != "Success"){
+                if(viewModel.formResult.message != "success" && viewModel.formResult.message != "Cargando"){
                     Text(
                         modifier = Modifier.padding(vertical = 8.dp),
-                        text = res.message,
+                        text = viewModel.formResult.message,
                         color = MaterialTheme.colors.error
                     )
                 }

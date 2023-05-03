@@ -21,7 +21,7 @@ import androidx.navigation.NavController
 @Composable
 fun ProfileList(
     navController: NavController,
-    viewModel: ProfilesViewModel = hiltViewModel()
+    viewModel: ProfilesListViewModel = hiltViewModel()
 ) {
     Scaffold(topBar = { TopAppBar(
         title = { Text(text = "Perfiles") },

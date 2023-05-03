@@ -1,6 +1,7 @@
 package com.example.bledinamo.persistence.entities
 
 import androidx.room.*
+import java.time.LocalDateTime
 
 @Entity
 data class Profile(
@@ -13,8 +14,17 @@ data class Profile(
 )
 
 @Entity
+data class MaxGripMeasurement (
+    @PrimaryKey(autoGenerate = true)
+    val measurementId: Int,
+    val profileCreatorName: String,
+    val measurement: Float,
+    val dateTaken: LocalDateTime,
+)
+
 data class ProfileWithMeasurements(
-    @Embedded val profile: Profile,
+    @Embedded
+    val profile: Profile,
     @Relation(
         parentColumn = "name",
         entityColumn = "profileCreatorName"

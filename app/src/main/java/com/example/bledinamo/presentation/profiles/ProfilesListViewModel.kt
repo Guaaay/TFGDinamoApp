@@ -1,6 +1,5 @@
 package com.example.bledinamo.presentation.profiles
 
-import android.database.sqlite.SQLiteConstraintException
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -12,13 +11,11 @@ import com.example.bledinamo.persistence.entities.Profile
 import com.example.bledinamo.persistence.entities.ProfileWithMeasurements
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import javax.annotation.meta.When
 
 import javax.inject.Inject
 
@@ -34,14 +31,12 @@ data class MainFormState(
 
 )
 @HiltViewModel
-class ProfilesViewModel @Inject constructor(
+class ProfilesListViewModel @Inject constructor(
     private val database: AppDatabase
 ): ViewModel() {
 
-    var allProfiles by mutableStateOf<List<ProfileWithMeasurements>?>(null)
-        private set
 
-    var profileResult by mutableStateOf<ProfileWithMeasurements?>(null)
+    var allProfiles by mutableStateOf<List<ProfileWithMeasurements>?>(null)
         private set
 
     var formResult by mutableStateOf<FormResultMessage>(FormResultMessage.Loading)
@@ -51,6 +46,7 @@ class ProfilesViewModel @Inject constructor(
 
     var validatingForm by mutableStateOf(false)
         private set
+
 
     private val _formState = MutableStateFlow(MainFormState())
     val formState: StateFlow<MainFormState> = _formState.asStateFlow()
@@ -162,25 +158,6 @@ class ProfilesViewModel @Inject constructor(
         return !(_formState.value.currentNameErrors.isNotEmpty() || _formState.value.currentName.isEmpty()
                 || _formState.value.currentAgeErrors.isNotEmpty() || _formState.value.currentAgeText.isEmpty()
                 || (!_formState.value.male && !_formState.value.female))
-    }
-
-
-
-    fun getProfile(profileName : String){
-
-        viewModelScope.launch {
-            loadingProfiles = true
-            //Para pasar la operación de lectura de la BBDD a un hilo de E/S más apropiado que el hilo principal
-            withContext(Dispatchers.IO) {
-                val profileDao = database.profileDao()
-                profileResult = profileDao.getProfileWithGrips(profileName).first()
-            }
-
-            if(profileResult != null){
-                loadingProfiles = false
-            }
-            Log.d("ProfilesViewModel",allProfiles.toString())
-        }
     }
 
 

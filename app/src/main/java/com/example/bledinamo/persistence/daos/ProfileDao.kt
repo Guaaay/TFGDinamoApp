@@ -15,10 +15,17 @@ interface ProfileDao {
     fun updateProfile(vararg profiles: Profile)
 
     @Delete
-    fun deleteProfile(vararg profiles: Profile)
+    fun deleteProfiles(vararg profile: Profile)
 
+    @Transaction
+    @Query("DELETE FROM MaxGripMeasurement WHERE profileCreatorName LIKE :name")
+    fun deleteMaxGripMeasurementsForProfile(name: String)
+
+
+    @Transaction
     @Query("SELECT * FROM Profile WHERE name LIKE :name")
     fun getProfile(name: String): List<Profile>
+    @Transaction
     @Query("SELECT * FROM Profile WHERE name LIKE :name")
     fun getProfileWithGrips(name: String): List<ProfileWithMeasurements>
     @Transaction
