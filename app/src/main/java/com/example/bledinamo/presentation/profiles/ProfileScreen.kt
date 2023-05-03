@@ -1,6 +1,7 @@
 package com.example.bledinamo.presentation.profiles
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
@@ -96,28 +97,107 @@ fun ProfileContent (navController: NavController,
                     viewModel: ProfileScreenViewModel,)
 {
     val profile = viewModel.profileResult!!
-    Column(
-        Modifier
-            .padding(8.dp)
-            .fillMaxSize(),
+    Column(modifier =
+        Modifier.
+            fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-        Spacer(modifier = Modifier.padding(vertical = 35.dp))
-        Card(modifier = Modifier
-            .padding(20.dp)
-            .wrapContentHeight(),
-            shape = MaterialTheme.shapes.medium,
-            elevation = 5.dp,
-            backgroundColor = MaterialTheme.colors.surface
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically){
+    ){
+        Spacer(modifier = Modifier.padding(5.dp))
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(5.dp)
+                .wrapContentSize(),
+            elevation = 4.dp
+
+        ){
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Spacer(modifier = Modifier.padding(vertical = 20.dp))
                 Text(
-                    text = profile.profile.name,
-                    style = MaterialTheme.typography.h4,
+                    text = "Nombre",
+                    style = MaterialTheme.typography.h5,
+                    color = MaterialTheme.colors.onSurface,
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = profile.profile.name,
+                        style = MaterialTheme.typography.h4,
+                        color = MaterialTheme.colors.onSurface,
+                    )
+                }
+                Spacer(modifier = Modifier.padding(vertical = 20.dp))
+            }
+        }
+        Row(modifier = Modifier
+            .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ){
+            CardAchteristic("Edad: " + profile.profile.age.toString())
+            CardAchteristic("Sexo: " + profile.profile.sex)
+        }
+        DescriptionCard(profile.profile.description)
+
+
+    }
+
+
+}
+
+@Composable
+fun CardAchteristic(text : String){
+    Card(
+        modifier = Modifier
+            .padding(8.dp)
+            .wrapContentSize(),
+        elevation = 4.dp
+
+    ){
+        Column(
+            modifier = Modifier
+                .padding(10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.h5,
                     color = MaterialTheme.colors.onSurface,
                 )
             }
         }
+    }
+}
 
+@Composable
+fun DescriptionCard(text : String){
+    Card(
+        modifier = Modifier
+            .padding(8.dp)
+            .wrapContentSize(),
+        elevation = 4.dp
+
+    ){
+        Column(
+            modifier = Modifier
+                .padding(10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = "Observaciones:",
+                style = MaterialTheme.typography.h5,
+                color = MaterialTheme.colors.onSurface,
+            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.body1,
+                    color = MaterialTheme.colors.onSurface,
+                )
+            }
+        }
     }
 }

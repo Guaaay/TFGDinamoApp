@@ -54,13 +54,20 @@ class ProfilesListViewModel @Inject constructor(
     //Funciones para actualizar los valores del form
     fun updateName(name: String) {
         val errors = mutableListOf<String>()
+        var update = true
         if (name.length < 3) {
             errors.add("El nombre del perfil debe tener al menos 3 caracteres")
         }
-        _formState.value = _formState.value.copy(
-            currentName = name,
-            currentNameErrors = errors
-        )
+        if (name.length > 25) {
+            update = false
+        }
+        if(update){
+            _formState.value = _formState.value.copy(
+                currentName = name,
+                currentNameErrors = errors
+            )
+        }
+
     }
 
     fun updateSex(sex: String) {
