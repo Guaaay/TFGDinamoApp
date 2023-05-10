@@ -16,7 +16,7 @@ data class Profile(
 @Entity
 data class MaxGripMeasurement (
     @PrimaryKey(autoGenerate = true)
-    val measurementId: Int,
+    val measurementId: Int = 0,
     val profileCreatorName: String,
     val measurement: Float,
     val dateTaken: LocalDateTime,

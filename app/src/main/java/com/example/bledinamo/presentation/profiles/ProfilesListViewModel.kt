@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bledinamo.persistence.AppDatabase
+import com.example.bledinamo.persistence.datastore.PreferencesRepo
 import com.example.bledinamo.persistence.entities.Profile
 import com.example.bledinamo.persistence.entities.ProfileWithMeasurements
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,7 +33,8 @@ data class MainFormState(
 )
 @HiltViewModel
 class ProfilesListViewModel @Inject constructor(
-    private val database: AppDatabase
+    private val database: AppDatabase,
+    private val prefRepo: PreferencesRepo,
 ): ViewModel() {
 
 
@@ -51,6 +53,13 @@ class ProfilesListViewModel @Inject constructor(
     private val _formState = MutableStateFlow(MainFormState())
     val formState: StateFlow<MainFormState> = _formState.asStateFlow()
 
+    fun setCurrentProfile(profile: String){
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                prefRepo.updateCurrentProfile(profile)
+            }
+        }
+    }
     //Funciones para actualizar los valores del form
     fun updateName(name: String) {
         val errors = mutableListOf<String>()

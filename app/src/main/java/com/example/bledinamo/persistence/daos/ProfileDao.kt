@@ -18,6 +18,10 @@ interface ProfileDao {
     fun deleteProfiles(vararg profile: Profile)
 
     @Transaction
+    @Insert
+    fun insertMeasurement(vararg measurement: MaxGripMeasurement)
+
+    @Transaction
     @Query("DELETE FROM MaxGripMeasurement WHERE profileCreatorName LIKE :name")
     fun deleteMaxGripMeasurementsForProfile(name: String)
 

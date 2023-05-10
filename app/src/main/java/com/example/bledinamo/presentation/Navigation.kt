@@ -37,6 +37,7 @@ fun Navigation(
             }
             composable(Screen.GripGraph.route) {
                 GripGraph(
+                    navController = navController,
                     onBluetoothStateChanged
                 )
             }

@@ -1,22 +1,27 @@
 package com.example.bledinamo.presentation.profiles
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import android.os.Build
+import androidx.annotation.RequiresApi
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.bledinamo.persistence.entities.ProfileWithMeasurements
+import java.time.LocalDateTime
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun ProfileScreen(navController: NavController,
@@ -35,7 +40,7 @@ fun ProfileScreen(navController: NavController,
             }
             else{
                 Scaffold(topBar = { TopAppBar(
-                    title = { Text(text = profileName!!) },
+                    title = { Text(text = profileName) },
                     contentColor = MaterialTheme.colors.onPrimary,
                     backgroundColor = MaterialTheme.colors.primary,
                     actions = {
@@ -52,7 +57,8 @@ fun ProfileScreen(navController: NavController,
                 if(viewModel.loadingProfile){
                     Column(
                         modifier = Modifier
-                            .fillMaxWidth(),
+                            .fillMaxWidth()
+                            ,
                         verticalArrangement = Arrangement.spacedBy(5.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -92,14 +98,16 @@ fun ProfileScreen(navController: NavController,
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ProfileContent (navController: NavController,
                     viewModel: ProfileScreenViewModel,)
 {
     val profile = viewModel.profileResult!!
     Column(modifier =
-        Modifier.
-            fillMaxSize(),
+    Modifier
+        .fillMaxSize()
+        .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ){
         Spacer(modifier = Modifier.padding(5.dp))
@@ -116,20 +124,20 @@ fun ProfileContent (navController: NavController,
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Spacer(modifier = Modifier.padding(vertical = 20.dp))
+                Spacer(modifier = Modifier.padding(vertical = 15.dp))
                 Text(
                     text = "Nombre",
-                    style = MaterialTheme.typography.h5,
+                    style = MaterialTheme.typography.h6,
                     color = MaterialTheme.colors.onSurface,
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = profile.profile.name,
-                        style = MaterialTheme.typography.h4,
+                        style = MaterialTheme.typography.h5,
                         color = MaterialTheme.colors.onSurface,
                     )
                 }
-                Spacer(modifier = Modifier.padding(vertical = 20.dp))
+                Spacer(modifier = Modifier.padding(vertical = 15.dp))
             }
         }
         Row(modifier = Modifier
@@ -140,13 +148,54 @@ fun ProfileContent (navController: NavController,
             CardAchteristic("Sexo: " + profile.profile.sex)
         }
         DescriptionCard(profile.profile.description)
+        CardAchteristic("Medidas:")
+        Button(onClick = {
+            viewModel.setCurrentProfile(profile.profile.name)
+            navController.navigate("grip_graph")
+        }){
+            Text("Realizar una nueva medida")
+        }
 
-
+        if(profile.measurements.isNotEmpty()){
+            MeasuresGraph(measureList = profile.measurements)
+            profile.measurements.forEach{measurement ->
+                MeasurementCard(measurement = measurement.measurement, date = measurement.dateTaken)
+            }
+            Spacer(modifier = Modifier.padding(vertical = 30.dp))
+        }
     }
 
 
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun MeasurementCard(measurement: Float, date : LocalDateTime){
+    Card(
+        modifier = Modifier
+            .padding(8.dp)
+            .wrapContentSize(),
+        elevation = 4.dp,
+    ){
+        Column(
+            modifier = Modifier
+                .padding(10.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            var cero = ""
+            if(date.minute < 10)
+                cero = "0"
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "Fuerza: ${"%.2f".format(measurement)}Kg  Fecha: ${date.dayOfMonth}/${date.monthValue}/${date.year} a las ${date.hour}:$cero${date.minute}",
+                    style = MaterialTheme.typography.body1,
+                    color = MaterialTheme.colors.onSurface,
+                )
+            }
+        }
+    }
+}
 @Composable
 fun CardAchteristic(text : String){
     Card(
@@ -164,7 +213,7 @@ fun CardAchteristic(text : String){
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = text,
-                    style = MaterialTheme.typography.h5,
+                    style = MaterialTheme.typography.h6,
                     color = MaterialTheme.colors.onSurface,
                 )
             }
@@ -188,16 +237,28 @@ fun DescriptionCard(text : String){
         ) {
             Text(
                 text = "Observaciones:",
-                style = MaterialTheme.typography.h5,
+                style = MaterialTheme.typography.h6,
                 color = MaterialTheme.colors.onSurface,
             )
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = text,
-                    style = MaterialTheme.typography.body1,
-                    color = MaterialTheme.colors.onSurface,
-                )
+            if(text.length != 0){
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = text,
+                        style = MaterialTheme.typography.body1,
+                        color = MaterialTheme.colors.onSurface,
+                    )
+                }
             }
+            else{
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "Sin observaciones",
+                        style = MaterialTheme.typography.body1,
+                        color = MaterialTheme.colors.onSurface,
+                    )
+                }
+            }
+
         }
     }
 }

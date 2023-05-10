@@ -1,16 +1,15 @@
 package com.example.bledinamo.presentation
 
 import android.bluetooth.BluetoothAdapter
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -32,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.navigation.NavController
 import com.example.bledinamo.data.ConnectionState
 import com.example.bledinamo.data.MyBuffer
 import com.example.bledinamo.presentation.permissions.PermissionUtils
@@ -41,11 +41,13 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlin.math.ceil
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalTextApi::class)
 //@PreviewParameter
 //@Preview(showBackground = true)
 @Composable
 fun GripGraph(
+    navController : NavController,
     onBluetoothStateChanged: () -> Unit,
     viewModel: GripViewModel = hiltViewModel()
 ) {
@@ -67,6 +69,8 @@ fun GripGraph(
         effect = {
             val observer = LifecycleEventObserver { _, event ->
                 if (event == Lifecycle.Event.ON_START) {
+                    //Obtenemos el perfil actual
+                    viewModel.getCurrentProfile()
                     permissionState.launchMultiplePermissionRequest()
                     if (permissionState.allPermissionsGranted && bleConnectionState == ConnectionState.Disconnected) {
                         viewModel.reconnect()
@@ -102,6 +106,54 @@ fun GripGraph(
         //Log.d("GripGraph",viewModel.buffer.toString())
 
 
+        if(viewModel.currentProfile == null) {
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(5.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(Modifier.padding(20.dp))
+                CircularProgressIndicator()
+                Text(
+                    text = "Cargando perfil..."
+                )
+
+            }
+        }
+        else{
+            Spacer(modifier = Modifier.padding(5.dp))
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(5.dp)
+                    .wrapContentSize(),
+                elevation = 4.dp
+
+            ){
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Spacer(modifier = Modifier.padding(vertical = 20.dp))
+                    Text(
+                        text = "Midiendo para perfil",
+                        style = MaterialTheme.typography.h5,
+                        color = MaterialTheme.colors.onSurface,
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = viewModel.currentProfile!!.profile.name,
+                            style = MaterialTheme.typography.h4,
+                            color = MaterialTheme.colors.onSurface,
+                        )
+                    }
+                    Spacer(modifier = Modifier.padding(vertical = 20.dp))
+                }
+            }
+        }
         if (buffer.size < 2){
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -208,10 +260,13 @@ fun GripGraph(
                 Button(
                     onClick = {
                         //TODO: En este caso terminará la medición
-                        viewModel.resetValues()
+                        viewModel.saveMeasurement()
+                        navController.navigate("profiles_screen/${viewModel.currentProfile!!.profile.name}"){
+                            popUpTo("start_screen")
+                        }
                     }
                 ) {
-                    Text(text = "Reset")
+                    Text(text = "Añadir medida")
                 }
             }
 

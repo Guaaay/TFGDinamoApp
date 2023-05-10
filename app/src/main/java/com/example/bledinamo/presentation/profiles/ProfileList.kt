@@ -5,6 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -40,16 +42,19 @@ fun ProfileList(
         viewModel.getProfiles()
         if(!viewModel.loadingProfiles){
             val profiles = viewModel.allProfiles
-            LazyColumn(
+            Column(
                 modifier = Modifier
-                    .fillMaxSize(),
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
 
                 ) {
-                items(profiles!!){ profile ->
-                    profileMenuItem(profileName = profile.profile.name,navController)
+                profiles!!.forEach{ profile ->
+                    profileMenuItem(profileName = profile.profile.name,navController,viewModel)
                 }
+                Spacer(modifier = Modifier.size(50.dp))
             }
+
 
         }
         else{
@@ -73,37 +78,53 @@ fun ProfileList(
 
 
 @Composable
-fun profileMenuItem(profileName : String, navController: NavController){
+fun profileMenuItem(profileName : String, navController: NavController, viewModel: ProfilesListViewModel){
 
     Card(
         modifier = Modifier
             .padding(10.dp)
             .fillMaxWidth()
-            .wrapContentHeight()
-            .clickable {
-                navController.navigate("profiles_screen/$profileName")
-            },
+            .wrapContentHeight(),
         shape = MaterialTheme.shapes.medium,
         elevation = 5.dp,
         backgroundColor = MaterialTheme.colors.surface
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+        Column(){
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-            Icon(Icons.Default.Person, contentDescription = Icons.Default.Person.name,
-                modifier = Modifier,)
-            Column(Modifier.padding(8.dp)) {
-                Text(
-                    text = profileName,
-                    style = MaterialTheme.typography.h4,
-                    color = MaterialTheme.colors.onSurface,
+                Icon(
+                    Icons.Default.Person, contentDescription = Icons.Default.Person.name,
+                    modifier = Modifier,
                 )
+                Column(Modifier.padding(8.dp)) {
+                    Text(
+                        text = profileName,
+                        style = MaterialTheme.typography.h6,
+                        color = MaterialTheme.colors.onSurface,
+                    )
 
+                }
             }
+            Row(modifier = Modifier
+                .fillMaxSize(),
+            horizontalArrangement = Arrangement.SpaceEvenly){
+                Button(onClick = {
+                    viewModel.setCurrentProfile(profileName)
+                    navController.popBackStack()
+                }) {
+                    Text(text = "Seleccionar")
+                }
+                Button(onClick = { navController.navigate("profiles_screen/$profileName") }) {
+                    Text(text = "Ver perfil")
+                }
+            }
+            Spacer(modifier = Modifier.size(8.dp))
         }
+
 
     }
 }
