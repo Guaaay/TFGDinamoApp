@@ -55,6 +55,7 @@ fun StartScreen(
             Column(
                 modifier = Modifier
                     .wrapContentSize()
+                    .background(MaterialTheme.colors.primarySurface)
                     .clickable{
                         navController.navigate("profiles_screen/${viewModel.currentProfile!!.profile.name}")
                     }

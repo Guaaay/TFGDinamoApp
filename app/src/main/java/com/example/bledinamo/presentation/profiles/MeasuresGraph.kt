@@ -1,6 +1,8 @@
 package com.example.bledinamo.presentation.profiles
 
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
@@ -22,8 +24,10 @@ import androidx.core.content.ContextCompat
 import com.example.bledinamo.R
 import com.example.bledinamo.persistence.entities.MaxGripMeasurement
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.time.LocalDateTime
 import kotlin.math.ceil
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MeasuresGraph(measureList: List<MaxGripMeasurement>) {
     //Graph
@@ -70,7 +74,7 @@ fun MeasuresGraph(measureList: List<MaxGripMeasurement>) {
             {
                 val canvasWidth = size.width
                 val widthOffset = 50f
-                val canvasHeight = size.height - 30
+                val canvasHeight = size.height - 50
                 val xDiv = (canvasWidth - widthOffset) / measureList.size
                 var maxVal = 0f
                 measureList.forEach(){
@@ -85,6 +89,7 @@ fun MeasuresGraph(measureList: List<MaxGripMeasurement>) {
                 }
                 val numIntervals = ceil(maxVal / gaps).toInt()
                 var j = numIntervals - 1
+                //Pintamos los números del eje Y y las líneas horizontales
                 for (i in 1..numIntervals) {
                     val yPos = ((i * canvasHeight / numIntervals) + 7)
                     drawIntoCanvas {
@@ -108,6 +113,11 @@ fun MeasuresGraph(measureList: List<MaxGripMeasurement>) {
                     val load = measurement.measurement
                     val xPos1 = xDiv * index
                     val xPos2 = xDiv * (index + 1)
+                    //Pintamos la fecha de cada medida
+                    drawIntoCanvas {
+                        it.nativeCanvas.drawText(formatDate(measureList[index].dateTaken) , xPos1+10, canvasHeight+30, paint)
+                    }
+                    //Líneas verticales
                     drawLine(
                         start = Offset(
                             x = xPos1 + widthOffset,
@@ -115,7 +125,7 @@ fun MeasuresGraph(measureList: List<MaxGripMeasurement>) {
                         ),
                         end = Offset(
                             x = xPos1 + widthOffset,
-                            y = size.height
+                            y = canvasHeight
                         ),
                         color = onBackgroundGray,
                         strokeWidth = Stroke.HairlineWidth,
@@ -149,4 +159,9 @@ private fun calcY(maxVal: Float, cheight: Float, currVal: Float): Float {
 
     val prop = currVal / maxVal
     return cheight - prop * cheight + 30
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+private fun formatDate(date : LocalDateTime) : String{
+    return "${date.dayOfMonth}/${date.monthValue}/${date.year.toString().subSequence(2,4)}"
 }

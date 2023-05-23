@@ -158,7 +158,7 @@ fun ProfileContent (navController: NavController,
 
         if(profile.measurements.isNotEmpty()){
             MeasuresGraph(measureList = profile.measurements)
-            profile.measurements.forEach{measurement ->
+            profile.measurements.asReversed().forEach{measurement ->
                 MeasurementCard(measurement = measurement.measurement, date = measurement.dateTaken)
             }
             Spacer(modifier = Modifier.padding(vertical = 30.dp))

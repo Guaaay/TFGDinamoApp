@@ -112,15 +112,16 @@ fun profileMenuItem(profileName : String, navController: NavController, viewMode
             Row(modifier = Modifier
                 .fillMaxSize(),
             horizontalArrangement = Arrangement.SpaceEvenly){
+                Button(onClick = { navController.navigate("profiles_screen/$profileName") }) {
+                    Text(text = "Ver perfil")
+                }
                 Button(onClick = {
                     viewModel.setCurrentProfile(profileName)
                     navController.popBackStack()
                 }) {
                     Text(text = "Seleccionar")
                 }
-                Button(onClick = { navController.navigate("profiles_screen/$profileName") }) {
-                    Text(text = "Ver perfil")
-                }
+
             }
             Spacer(modifier = Modifier.size(8.dp))
         }

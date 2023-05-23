@@ -1,0 +1,367 @@
+package com.example.bledinamo.games.gatoenglobo
+
+import android.bluetooth.BluetoothAdapter
+import android.os.Build
+import android.util.Log
+import androidx.annotation.RequiresApi
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.navigation.NavController
+import com.example.bledinamo.data.ConnectionState
+import com.example.bledinamo.presentation.permissions.PermissionUtils
+import com.example.bledinamo.presentation.permissions.SystemBroadcastReceiver
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import kotlin.math.ceil
+
+
+@Composable
+fun GloboGameLoop(modifier: Modifier = Modifier){
+    Canvas(modifier = modifier){
+
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+fun GloboMainGameScreen(
+    navController : NavController,
+    onBluetoothStateChanged: () -> Unit,
+    viewModel: GloboViewModel = hiltViewModel()
+)
+{
+    SystemBroadcastReceiver(systemAction = BluetoothAdapter.ACTION_STATE_CHANGED) { bluetoothState ->
+        val action = bluetoothState?.action ?: return@SystemBroadcastReceiver
+        if (action == BluetoothAdapter.ACTION_STATE_CHANGED) {
+            onBluetoothStateChanged()
+        }
+    }
+    val permissionState =
+        rememberMultiplePermissionsState(permissions = PermissionUtils.permissions)
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    val bleConnectionState = viewModel.connectionState
+
+    DisposableEffect(
+        key1 = lifecycleOwner,
+        effect = {
+            val observer = LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_START) {
+                    //Obtenemos el perfil actual
+                    viewModel.getCurrentProfile()
+                    permissionState.launchMultiplePermissionRequest()
+                    if (permissionState.allPermissionsGranted && bleConnectionState == ConnectionState.Disconnected) {
+                        viewModel.reconnect()
+                    }
+                }
+                if (event == Lifecycle.Event.ON_STOP) {
+                    if (bleConnectionState == ConnectionState.Connected) {
+                        viewModel.disconnect()
+                    }
+                }
+            }
+            lifecycleOwner.lifecycle.addObserver(observer)
+
+            onDispose {
+                lifecycleOwner.lifecycle.removeObserver(observer)
+            }
+        }
+    )
+
+    LaunchedEffect(key1 = permissionState.allPermissionsGranted) {
+        if (permissionState.allPermissionsGranted) {
+            if (bleConnectionState == ConnectionState.Uninitialized) {
+                viewModel.initializeConnection()
+            }
+        }
+    }
+
+    if (bleConnectionState == ConnectionState.Connected) {
+        //Gestionamos el juego principal
+        if(!viewModel.hasCalibrated){
+            Graph(viewModel,navController)
+        }
+
+
+
+    } else {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(0.6f)
+                    .aspectRatio(1f)
+                    .border(
+                        BorderStroke(
+                            5.dp, Color.Blue
+                        ),
+                        RoundedCornerShape(10.dp)
+                    ),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if (bleConnectionState == ConnectionState.CurrentlyInitializing) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(5.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator()
+                        if (viewModel.initializingMessage != null) {
+                            Text(
+                                text = viewModel.initializingMessage!!
+                            )
+                        }
+                    }
+                } else if (!permissionState.allPermissionsGranted) {
+                    Text(
+                        text = "Ve a los ajustes de la app y otorga los permisos que faltan.",
+                        style = MaterialTheme.typography.body2,
+                        modifier = Modifier.padding(10.dp),
+                        textAlign = TextAlign.Center,
+                    )
+                    Button(
+                        onClick = {
+                            permissionState.launchMultiplePermissionRequest()
+                            Log.d("GripScreen", "Launched permissions")
+                            if (permissionState.allPermissionsGranted && bleConnectionState == ConnectionState.Disconnected) {
+
+                                viewModel.reconnect()
+                            }
+                        }
+                    ) {
+                        Text(text = "Pedir permisos")
+                    }
+                } else if (viewModel.errorMessage != null) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = viewModel.errorMessage!!
+                        )
+                        Button(
+                            onClick = {
+                                if (permissionState.allPermissionsGranted) {
+                                    viewModel.initializeConnection()
+                                }
+                            }
+                        ) {
+                            Text(text = "Volver a intentar")
+                        }
+                    }
+                } else if (bleConnectionState == ConnectionState.Disconnected) {
+                    Button(onClick = {
+                        viewModel.initializeConnection()
+                    }) {
+                        Text("Initialize again")
+                    }
+                }
+            }
+
+        }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable fun Graph(viewModel:GloboViewModel, navController: NavController){
+    var currLoad = viewModel.load
+    var buffer = viewModel.buffer
+    if(viewModel.currentProfile == null) {
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(5.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(Modifier.padding(20.dp))
+            CircularProgressIndicator()
+            Text(
+                text = "Cargando perfil..."
+            )
+
+        }
+    }
+    else{
+        Spacer(modifier = Modifier.padding(5.dp))
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(5.dp)
+                .wrapContentSize(),
+            elevation = 4.dp
+
+        ){
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Spacer(modifier = Modifier.padding(vertical = 20.dp))
+                Text(
+                    text = "Midiendo para perfil",
+                    style = MaterialTheme.typography.h5,
+                    color = MaterialTheme.colors.onSurface,
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = viewModel.currentProfile!!.profile.name,
+                        style = MaterialTheme.typography.h4,
+                        color = MaterialTheme.colors.onSurface,
+                    )
+                }
+                Spacer(modifier = Modifier.padding(vertical = 20.dp))
+            }
+        }
+    }
+    if (buffer.size < 2){
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ){
+            Text(text = "Aprieta el dinamómetro",style = MaterialTheme.typography.h6)
+        }
+        return
+    }
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        val onBackground = MaterialTheme.colors.onBackground
+        val onBackgroundGray = onBackground.copy(0.4f)
+
+        Column(verticalArrangement = Arrangement.Center,horizontalAlignment = Alignment.CenterHorizontally){
+            Canvas(
+                modifier = Modifier
+                    .height(250.dp)
+                    .fillMaxWidth()
+                    .padding(12.dp)
+                    .border(
+                        BorderStroke(
+                            1.dp, Color.Black
+                        ),
+                        RoundedCornerShape(10.dp)
+                    ),
+            )
+            {
+                val canvasWidth = size.width
+                val widthOffset = 50f
+                val canvasHeight = size.height - 30
+                val xDiv = (canvasWidth-widthOffset) / buffer.size
+                val maxVal = buffer.max()
+                //El intervalo de lineas horizontales:
+                val gaps = 20
+                val paint = Paint().asFrameworkPaint().apply {
+                    textSize = 20f
+                }
+                val numIntervals = ceil(maxVal / gaps).toInt()
+                var j = numIntervals-1
+                for (i in 1..numIntervals) {
+                    val yPos = ((i * canvasHeight / numIntervals)+7)
+                    drawIntoCanvas {
+                        it.nativeCanvas.drawText((j*gaps).toString(),  10f, yPos, paint)
+                    }
+                    drawLine(
+                        start = Offset(
+                            x = widthOffset,
+                            y = i * canvasHeight / numIntervals
+                        ),
+                        end = Offset(
+                            x = canvasWidth,
+                            y = i * canvasHeight / numIntervals
+                        ),
+                        color = onBackgroundGray,
+                        strokeWidth = Stroke.HairlineWidth,
+                    )
+                    j -= 1
+                }
+                buffer.forEachIndexed { index, load ->
+                    val xPos1 = xDiv * index
+                    val xPos2 = xDiv * (index + 1)
+                    if (index % 5 == 0 || index == buffer.size - 1) {
+                        drawLine(
+                            start = Offset(
+                                x = xPos1+widthOffset,
+                                y = 0f
+                            ),
+                            end = Offset(
+                                x = xPos1+widthOffset,
+                                y = size.height
+                            ),
+                            color = onBackgroundGray,
+                            strokeWidth = Stroke.HairlineWidth,
+                        )
+                    }
+
+                    if (index < buffer.size - 1) {
+
+                        drawLine(
+                            start = Offset(
+                                x = xPos1+widthOffset,
+                                y = calcY(maxVal, canvasHeight, load)
+                            ),
+                            end = Offset(
+                                x = xPos2+widthOffset,
+                                y = calcY(maxVal, canvasHeight, buffer[index + 1])
+                            ),
+                            color = onBackground,
+                            strokeWidth = Stroke.DefaultMiter,
+                        )
+
+                    }
+
+                }
+            }
+            Text(
+                text = "Máximo: ${"%.2f".format(viewModel.maxLoad)} Kg",
+                style = MaterialTheme.typography.h6
+            )
+            Button(
+                onClick = {
+                    //TODO: En este caso terminará la medición
+                    viewModel.saveMeasurement()
+                    navController.navigate("profiles_screen/${viewModel.currentProfile!!.profile.name}"){
+                        popUpTo("start_screen")
+                    }
+                }
+            ) {
+                Text(text = "Añadir medida")
+            }
+        }
+
+    }
+}
+private fun calcY(maxVal: Float, cheight: Float, currVal: Float): Float {
+
+    val prop = currVal / maxVal
+    return cheight - prop * cheight + 30
+}
