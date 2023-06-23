@@ -75,7 +75,7 @@ class ProfileScreenViewModel @Inject constructor(
                 val profileDao = database.profileDao()
                 val res = profileDao.getProfileWithGrips(profileName)
                 if(res.isNotEmpty())
-                profileResult = res.first()
+                    profileResult = res.first()
             }
 
             if(profileResult != null){

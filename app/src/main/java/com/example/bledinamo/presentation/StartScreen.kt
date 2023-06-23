@@ -55,7 +55,7 @@ fun StartScreen(
             Column(
                 modifier = Modifier
                     .wrapContentSize()
-                    .background(MaterialTheme.colors.primarySurface)
+                    .background(MaterialTheme.colors.surface)
                     .clickable{
                         navController.navigate("profiles_screen/${viewModel.currentProfile!!.profile.name}")
                     }
@@ -80,7 +80,7 @@ fun StartScreen(
 
 
 
-            MenuButton(navController = navController, destinationRoute = BottomNavScreen.Games.route, text = "Minijuegos",Icons.Default.PlayArrow)
+            MenuButton(navController = navController, destinationRoute = Screen.GloboGame.route, text = "Minijuegos",Icons.Default.PlayArrow)
             MenuButton(navController = navController, destinationRoute = Screen.GripGraph.route, text = "Medir agarre",Icons.Default.Add)
             MenuButton(navController = navController, destinationRoute = BottomNavScreen.Profiles.route, text = "Perfiles",Icons.Default.Person)
         }

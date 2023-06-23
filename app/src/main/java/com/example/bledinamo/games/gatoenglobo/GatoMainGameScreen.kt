@@ -4,52 +4,217 @@ import android.bluetooth.BluetoothAdapter
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.border
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
+import com.example.bledinamo.R
 import com.example.bledinamo.data.ConnectionState
 import com.example.bledinamo.presentation.permissions.PermissionUtils
 import com.example.bledinamo.presentation.permissions.SystemBroadcastReceiver
+import com.example.bledinamo.ui.theme.fonts
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import kotlin.math.ceil
 
 
 @Composable
-fun GloboGameLoop(modifier: Modifier = Modifier){
-    Canvas(modifier = modifier){
+fun GatoGameLoop(modifier: Modifier = Modifier,viewModel: GatoViewModel, navController: NavController){
+    val gameState by viewModel.gameState.collectAsState()
+    val gatoBitmap = ImageBitmap.imageResource(id = R.drawable.flycat_spsheet)
+    val pawsBitmap = ImageBitmap.imageResource(id = R.drawable.allpaws)
+    val bgBitmap = ImageBitmap.imageResource(id = R.drawable.bgressa_purp)
+    val settingsBitmap = ImageBitmap.imageResource(id = R.drawable.settings)
+
+    if(gameState.stage == GameState.GameStage.STOPPED){
+        Canvas(modifier = modifier){
+            gameState.bgState.drawBG(this,bgBitmap)
+            var imWidth = (gatoBitmap.width/2)
+
+            //Gato volando
+            val check = gameState.tick % 8
+            val frame = if (check < 4) 0 else 1
+
+            drawImage(
+                gatoBitmap,
+                srcOffset = IntOffset((gatoBitmap.width/2)*frame, 0),
+                srcSize = IntSize(gatoBitmap.width/2,gatoBitmap.height),
+                dstSize = IntSize(imWidth,(gatoBitmap.height.toFloat()/1.1f).toInt()),
+                dstOffset = IntOffset((this.size.width.toInt()/2)-imWidth/2,this.size.width.toInt()/4)
+            )
+        }
+        Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center){
+            Text(color = Color.hsv(356f,0.82f,0.71f),text = "GAME OVER", fontFamily = fonts,fontSize = 50.sp)
+            Spacer(modifier = Modifier.size(20.dp))
+
+            Text(color = Color.hsv(356f,0.82f,0.71f),text = "Puntos: " + gameState.score, fontFamily = fonts,fontSize = 34.sp)
+            Spacer(modifier = Modifier.size(20.dp))
+            viewModel.checkHighScore(gameState.score)
+            if(viewModel.highScore){
+                val infiniteTransition = rememberInfiniteTransition()
+                val offset by infiniteTransition.animateFloat(
+                    initialValue = 0f,
+                    targetValue = 360f,
+                    animationSpec = infiniteRepeatable(tween(1000, easing = LinearEasing))
+                )
+
+                Text(color = Color.hsv(offset,0.82f,0.71f),text = "¡NUEVO RECORD!", fontFamily = fonts,fontSize = 20.sp)
+            }
+            Spacer(modifier = Modifier.size(30.dp))
+            TextButton (onClick = {
+                gameState.resetGame()
+                viewModel.startGameLoop()
+
+            }){
+                Text(color = Color.DarkGray,text = "Volver a jugar", fontFamily = fonts,fontSize = 30.sp)
+            }
+            Spacer(modifier = Modifier.size(10.dp))
+            TextButton (onClick = {
+                navController.popBackStack()
+            }){
+                Text(color = Color.DarkGray,text = "Salir", fontFamily = fonts,fontSize = 30.sp)
+            }
+
+
+        }
+    }
+    else if(gameState.stage == GameState.GameStage.RUNNING){
+        Canvas(modifier = modifier){
+            gameState.pawState.setCanvasSize(this.size,pawsBitmap)
+            gameState.bgState.setCanvasSize(this.size,bgBitmap)
+            val gato = gameState.gatoState
+            gato.setCanvasHeight(this.size)
+
+            gameState.bgState.drawBG(this,bgBitmap)
+            var globoRect = gato.draw(this, gameState.tick,gatoBitmap)
+            var pawRects = gameState.pawState.drawPaw(this,pawsBitmap)
+
+            if(checkCollisions(pawRects,globoRect)){
+                gameState.stage = GameState.GameStage.STOPPED
+            }
+
+        }
+        Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.CenterHorizontally){
+            Spacer(modifier = Modifier.size(40.dp))
+            Text(color = Color.Black,text = gameState.score.toString(), fontFamily = fonts, fontSize = 45.sp)
+        }
+        Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.Start){
+
+            IconButton(onClick = {gameState.pause()}) {
+                Icon(
+                    settingsBitmap,
+                    contentDescription = "Ajustes del juego",
+                    modifier = Modifier.size(45.dp),
+                    tint = Color.Black
+                )
+            }
+        }
+        Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.End){
+            Spacer(modifier = Modifier.size(10.dp))
+            Text(color = Color.Black,text = "${"%.2f".format(gameState.load)} Kg", fontFamily = fonts,fontSize = 30.sp)
+        }
 
     }
+    else if(gameState.stage == GameState.GameStage.PAUSED){
+        Canvas(modifier = modifier){
+            gameState.bgState.drawBG(this,bgBitmap)
+            gameState.pawState.drawPaw(this,pawsBitmap)
+            /*var imWidth = (gatoBitmap.width/2)
+
+            //Gato volando
+            val check = gameState.tick % 8
+            val frame = if (check < 4) 0 else 1
+
+            drawImage(
+                gatoBitmap,
+                srcOffset = IntOffset((gatoBitmap.width/2)*frame, 0),
+                srcSize = IntSize(gatoBitmap.width/2,gatoBitmap.height),
+                dstSize = IntSize(imWidth,(gatoBitmap.height.toFloat()/1.1f).toInt()),
+                dstOffset = IntOffset((this.size.width.toInt()/2)-imWidth/2,this.size.width.toInt()/4)
+            )*/
+        }
+        Column(modifier = Modifier.fillMaxSize(), Arrangement.Center, Alignment.CenterHorizontally) {
+            Box(modifier = Modifier
+                .fillMaxSize(0.9f)
+                .clip(RoundedCornerShape(20.dp))
+                .background(Color.hsv(288f, 0.16f, 0.3f, 0.5f)),)
+            {
+
+                Row(modifier=Modifier.fillMaxSize(),horizontalArrangement = Arrangement.End){
+                    IconButton(modifier = Modifier.size(50.dp),onClick = {
+                        gameState.resetGame()
+                        viewModel.startGameLoop()
+                    }) {
+                        Icon(Icons.Default.Close,null,tint = Color.Black)
+                    }
+
+                }
+                Column(modifier = Modifier.fillMaxSize(),verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(color = Color.Black,text = "Ajustes", fontFamily = fonts,fontSize = 50.sp)
+                    Spacer(modifier = Modifier.size(100.dp))
+                    Text(color = Color.Black,text = "Velocidad del juego: ${(viewModel.speedSlider*100).toInt()}%", fontFamily = fonts,fontSize = 15.sp)
+                    Slider(modifier = Modifier.padding(horizontal = 20.dp),value = viewModel.speedSlider, onValueChange = {
+                        viewModel.speedSlider = it
+                        gameState.pawState.changeSpeed(it)
+                    })
+                    Spacer(modifier = Modifier.size(20.dp))
+                    Text(color = Color.Black,text = "Ancho de los agujeros: ${(viewModel.holeWidthSlider*100).toInt()}%", fontFamily = fonts,fontSize = 15.sp)
+                    Slider(modifier = Modifier.padding(horizontal = 20.dp),value = viewModel.holeWidthSlider, onValueChange = {
+                        viewModel.holeWidthSlider = it
+                        gameState.pawState.changeHoleSize(it)
+                    })
+                    Spacer(modifier = Modifier.size(20.dp))
+                    Text(color = Color.Black,text = "Fuerza necesaria: ${(viewModel.loadPercentSlider*100).toInt()}%", fontFamily = fonts,fontSize = 15.sp)
+                    Slider(modifier=Modifier.padding(horizontal = 20.dp),value = viewModel.loadPercentSlider, onValueChange = {
+                        viewModel.loadPercentSlider = it
+                        gameState.gatoState.changeLoadPercent(it)
+                    })
+                }
+            }
+        }
+    }
+}
+
+fun checkCollisions(buildRects: MutableList<Rect>, globoRect: Rect): Boolean {
+    buildRects.forEach{
+        if(it.overlaps(globoRect))
+            return true
+    }
+    return false
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun GloboMainGameScreen(
+fun GatoMainGameScreen(
     navController : NavController,
     onBluetoothStateChanged: () -> Unit,
-    viewModel: GloboViewModel = hiltViewModel()
+    viewModel: GatoViewModel = hiltViewModel()
 )
 {
     SystemBroadcastReceiver(systemAction = BluetoothAdapter.ACTION_STATE_CHANGED) { bluetoothState ->
@@ -103,6 +268,11 @@ fun GloboMainGameScreen(
         //Gestionamos el juego principal
         if(!viewModel.hasCalibrated){
             Graph(viewModel,navController)
+        }
+        else{
+            //LLamar el bucle del juego
+            viewModel.startGameLoop()
+            GatoGameLoop(modifier = Modifier.fillMaxSize(),viewModel,navController)
         }
 
 
@@ -191,7 +361,7 @@ fun GloboMainGameScreen(
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-@Composable fun Graph(viewModel:GloboViewModel, navController: NavController){
+@Composable fun Graph(viewModel:GatoViewModel, navController: NavController){
     var currLoad = viewModel.load
     var buffer = viewModel.buffer
     if(viewModel.currentProfile == null) {
@@ -349,9 +519,8 @@ fun GloboMainGameScreen(
                 onClick = {
                     //TODO: En este caso terminará la medición
                     viewModel.saveMeasurement()
-                    navController.navigate("profiles_screen/${viewModel.currentProfile!!.profile.name}"){
-                        popUpTo("start_screen")
-                    }
+                    viewModel.setReference(viewModel.maxLoad)
+                    viewModel.setCalibrated()
                 }
             ) {
                 Text(text = "Añadir medida")

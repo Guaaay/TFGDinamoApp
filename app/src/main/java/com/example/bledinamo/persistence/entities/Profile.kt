@@ -9,8 +9,8 @@ data class Profile(
     val name: String,
     val age:Int,
     val sex:String,
+    var gatoHighScore:Int,
     val description:String,
-
 )
 
 @Entity
@@ -21,6 +21,8 @@ data class MaxGripMeasurement (
     val measurement: Float,
     val dateTaken: LocalDateTime,
 )
+
+
 
 data class ProfileWithMeasurements(
     @Embedded

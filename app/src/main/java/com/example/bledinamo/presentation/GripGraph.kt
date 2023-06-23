@@ -282,7 +282,7 @@ fun GripGraph(
                     .aspectRatio(1f)
                     .border(
                         BorderStroke(
-                            5.dp, Color.Blue
+                            5.dp, MaterialTheme.colors.secondary
                         ),
                         RoundedCornerShape(10.dp)
                     ),

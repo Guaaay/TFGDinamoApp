@@ -147,7 +147,8 @@ class ProfilesListViewModel @Inject constructor(
                 name = _formState.value.currentName,
                 age = _formState.value.currentAge,
                 sex = _sex,
-                description = _formState.value.currentDescription
+                description = _formState.value.currentDescription,
+                gatoHighScore = 0,
             )
             viewModelScope.launch {
                 //Para pasar la operación de lectura de la BBDD a un hilo de E/S más apropiado que el hilo principal

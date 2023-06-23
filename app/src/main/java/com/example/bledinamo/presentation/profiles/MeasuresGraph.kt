@@ -72,16 +72,17 @@ fun MeasuresGraph(measureList: List<MaxGripMeasurement>) {
                     ),
             )
             {
+                val newList = measureList.takeLast(10)
                 val canvasWidth = size.width
                 val widthOffset = 50f
                 val canvasHeight = size.height - 50
-                val xDiv = (canvasWidth - widthOffset) / measureList.size
+                val xDiv = (canvasWidth - widthOffset) / newList.size
                 var maxVal = 0f
-                measureList.forEach(){
+                newList.forEach(){
                     maxVal = if (it.measurement > maxVal) it.measurement else maxVal
                 }
                 //El intervalo de lineas horizontales:
-                val gaps = 20
+                val gaps = 5
 
                 val paint = Paint().asFrameworkPaint().apply {
                     textSize = 20f
@@ -109,13 +110,13 @@ fun MeasuresGraph(measureList: List<MaxGripMeasurement>) {
                     )
                     j -= 1
                 }
-                measureList.forEachIndexed { index, measurement ->
+                newList.forEachIndexed { index, measurement ->
                     val load = measurement.measurement
                     val xPos1 = xDiv * index
                     val xPos2 = xDiv * (index + 1)
                     //Pintamos la fecha de cada medida
                     drawIntoCanvas {
-                        it.nativeCanvas.drawText(formatDate(measureList[index].dateTaken) , xPos1+10, canvasHeight+30, paint)
+                        it.nativeCanvas.drawText(formatDate(newList[index].dateTaken) , xPos1+10, canvasHeight+30, paint)
                     }
                     //Líneas verticales
                     drawLine(
@@ -131,7 +132,7 @@ fun MeasuresGraph(measureList: List<MaxGripMeasurement>) {
                         strokeWidth = Stroke.HairlineWidth,
                     )
 
-                    if (index < measureList.size - 1) {
+                    if (index < newList.size - 1) {
 
                         drawLine(
                             start = Offset(
@@ -140,7 +141,7 @@ fun MeasuresGraph(measureList: List<MaxGripMeasurement>) {
                             ),
                             end = Offset(
                                 x = xPos2 + widthOffset,
-                                y = calcY(maxVal, canvasHeight, measureList[index + 1].measurement)
+                                y = calcY(maxVal, canvasHeight, newList[index + 1].measurement)
                             ),
                             color = onBackground,
                             strokeWidth = Stroke.DefaultMiter,

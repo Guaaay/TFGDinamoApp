@@ -14,6 +14,7 @@ interface ProfileDao {
     @Update
     fun updateProfile(vararg profiles: Profile)
 
+
     @Delete
     fun deleteProfiles(vararg profile: Profile)
 

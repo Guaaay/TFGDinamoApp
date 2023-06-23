@@ -1,6 +1,8 @@
 package com.example.bledinamo.presentation
 
 import android.annotation.SuppressLint
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -13,11 +15,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.bledinamo.games.gatoenglobo.GatoMainGameScreen
 import com.example.bledinamo.presentation.bottomNav.DinamoBottomNavigation
 import com.example.bledinamo.presentation.profiles.CreateProfileForm
 import com.example.bledinamo.presentation.profiles.ProfileList
 import com.example.bledinamo.presentation.profiles.ProfileScreen
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun Navigation(
@@ -61,6 +65,14 @@ fun Navigation(
                 Screen.CreateProfileForm.route
             ){ CreateProfileForm(navController = navController)
             }
+            composable(
+                Screen.GloboGame.route
+            ){
+                GatoMainGameScreen(
+                    navController = navController,
+                    onBluetoothStateChanged
+                )
+            }
 
         }
     }
@@ -69,6 +81,8 @@ fun Navigation(
 sealed class Screen(val route:String){
     object GripGraph:Screen("grip_graph")
 
+    object GloboGame:Screen("globo_game")
+    object GloboGameEnd:Screen("globo_game/end_screen")
     object ProfileScreen:Screen("profiles_screen/{profileName}")
     object CreateProfileForm:Screen(route = "profiles_screen/profile_form")
 }

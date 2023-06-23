@@ -160,6 +160,11 @@ class GripBLEReceiveManager @Inject constructor(
         }
         override fun onDescriptorWrite(gatt: BluetoothGatt, descriptor: BluetoothGattDescriptor, status: Int) {
             super.onDescriptorWrite(gatt, descriptor, status)
+            coroutineScope.launch{
+                data.emit(
+                    Resource.Loading(message = "¡Aprieta el dinamómetro!")
+                )
+            }
             Log.d(
                 "BLEReceiveManager",
                 "onDescriptorWrite :" + if (status == BluetoothGatt.GATT_SUCCESS) "Success" else "false"
@@ -196,12 +201,8 @@ class GripBLEReceiveManager @Inject constructor(
             data.emit(Resource.Loading(message = "Activando notificaciones..."))
         }
         gatt?.let{ gatt ->
-
-
-            Log.d("BLEReceiveManager","Written $payload to descriptor < TIRAMISU")
             descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
             gatt.writeDescriptor(descriptor)
-
         }?:  error("Not connected to a BLE device")
     }
     private fun findCharacteristic(serviceUUID: String, characteristicsUUID: String) : BluetoothGattCharacteristic?{
