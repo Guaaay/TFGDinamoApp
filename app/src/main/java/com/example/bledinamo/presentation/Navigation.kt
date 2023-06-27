@@ -46,8 +46,9 @@ fun Navigation(
                 )
             }
             composable(BottomNavScreen.Games.route) {
-                GamesScreen(
-                    navController = navController
+                GatoMainGameScreen(
+                    navController = navController,
+                    onBluetoothStateChanged
                 )
             }
             composable(BottomNavScreen.Profiles.route) {
@@ -81,8 +82,7 @@ fun Navigation(
 sealed class Screen(val route:String){
     object GripGraph:Screen("grip_graph")
 
-    object GloboGame:Screen("globo_game")
-    object GloboGameEnd:Screen("globo_game/end_screen")
+    object GloboGame:Screen("games_screen/gato")
     object ProfileScreen:Screen("profiles_screen/{profileName}")
     object CreateProfileForm:Screen(route = "profiles_screen/profile_form")
 }

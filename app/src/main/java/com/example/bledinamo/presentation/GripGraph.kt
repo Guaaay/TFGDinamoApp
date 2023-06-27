@@ -191,7 +191,7 @@ fun GripGraph(
                     val xDiv = (canvasWidth-widthOffset) / buffer.size
                     val maxVal = buffer.max()
                     //El intervalo de lineas horizontales:
-                    val gaps = 20
+                    val gaps = 5
                     val paint = Paint().asFrameworkPaint().apply {
                         textSize = 20f
                     }
@@ -268,6 +268,12 @@ fun GripGraph(
                 ) {
                     Text(text = "Añadir medida")
                 }
+                Spacer(modifier = Modifier.padding(40.dp))
+                Text(
+                    text = "¡Aprieta todo lo fuerte que puedas!",
+                    style = MaterialTheme.typography.h4,
+                    textAlign = TextAlign.Center
+                )
             }
 
         }

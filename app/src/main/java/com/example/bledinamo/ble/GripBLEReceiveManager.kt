@@ -55,7 +55,6 @@ class GripBLEReceiveManager @Inject constructor(
 
     private val scanCallback = object : ScanCallback(){
         override fun onScanResult(callbackType : Int, result: ScanResult){
-            Log.d("Receivenager", "device: ${result.device.name}")
             if(result.device.name == DEVICE_NAME){
                 coroutineScope.launch {
                     data.emit(Resource.Loading(message = "Conectando al dispositivo"))
@@ -105,7 +104,6 @@ class GripBLEReceiveManager @Inject constructor(
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
             with(gatt){
-                printGattTable()
                 coroutineScope.launch {
                     data.emit(Resource.Loading(message = "Ajustando espacio MTU..."))
                 }

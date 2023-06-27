@@ -147,7 +147,7 @@ fun ProfileContent (navController: NavController,
             CardAchteristic("Edad: " + profile.profile.age.toString())
             CardAchteristic("Sexo: " + profile.profile.sex)
         }
-        CardAchteristic(text = "Record en gobos: " + profile.profile.gatoHighScore.toString())
+        CardAchteristic(text = "Record Juego : " + profile.profile.gatoHighScore.toString())
         DescriptionCard(profile.profile.description)
         CardAchteristic("Medidas:")
         Button(onClick = {

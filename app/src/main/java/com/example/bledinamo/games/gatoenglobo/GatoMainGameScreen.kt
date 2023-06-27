@@ -288,7 +288,7 @@ fun GatoMainGameScreen(
                     .aspectRatio(1f)
                     .border(
                         BorderStroke(
-                            5.dp, Color.Blue
+                            5.dp, MaterialTheme.colors.secondary
                         ),
                         RoundedCornerShape(10.dp)
                     ),
@@ -449,7 +449,7 @@ fun GatoMainGameScreen(
                 val xDiv = (canvasWidth-widthOffset) / buffer.size
                 val maxVal = buffer.max()
                 //El intervalo de lineas horizontales:
-                val gaps = 20
+                val gaps = 5
                 val paint = Paint().asFrameworkPaint().apply {
                     textSize = 20f
                 }
@@ -523,8 +523,14 @@ fun GatoMainGameScreen(
                     viewModel.setCalibrated()
                 }
             ) {
-                Text(text = "Añadir medida")
+                Text(text = "Comenzar el juego")
             }
+            Spacer(modifier = Modifier.padding(40.dp))
+            Text(
+                text = "¡Aprieta todo lo fuerte que puedas!",
+                style = MaterialTheme.typography.h4,
+                textAlign = TextAlign.Center
+            )
         }
 
     }

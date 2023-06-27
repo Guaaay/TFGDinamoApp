@@ -1,6 +1,7 @@
 package com.example.bledinamo.presentation.bottomNav
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -25,28 +26,31 @@ fun DinamoBottomNavigation(navController: NavController) {
     ) {
         val navBackStackEntry = navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry.value?.destination?.route
+        Log.d("NAVBAR", currentRoute.toString())
         items.forEach { item ->
-            BottomNavigationItem(
-                icon = { Icon(item.icon,item.icon.name)} ,
-                label = { Text(text = item.title,
-                    fontSize = 9.sp) },
-                selectedContentColor = MaterialTheme.colors.onPrimary,
-                unselectedContentColor = MaterialTheme.colors.onPrimary.copy(0.4f),
-                alwaysShowLabel = true,
-                selected = currentRoute == item.route,
-                onClick = {
-                    navController.navigate(item.route) {
+            if (currentRoute != null) {
+                BottomNavigationItem(
+                    icon = { Icon(item.icon,item.icon.name)} ,
+                    label = { Text(text = item.title,
+                        fontSize = 9.sp) },
+                    selectedContentColor = MaterialTheme.colors.onPrimary,
+                    unselectedContentColor = MaterialTheme.colors.onPrimary.copy(0.6f),
+                    alwaysShowLabel = true,
+                    selected = currentRoute.contains(item.route),
+                    onClick = {
+                        navController.navigate(item.route) {
 
-                        navController.graph.startDestinationRoute?.let { screen_route ->
-                            popUpTo(screen_route) {
-                                saveState = true
+                            navController.graph.startDestinationRoute?.let { screen_route ->
+                                popUpTo(screen_route) {
+                                    saveState = true
+                                }
                             }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                        launchSingleTop = true
-                        restoreState = true
                     }
-                }
-            )
+                )
+            }
         }
     }
 }
