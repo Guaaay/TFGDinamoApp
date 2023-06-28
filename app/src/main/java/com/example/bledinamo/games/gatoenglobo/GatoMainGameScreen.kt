@@ -115,7 +115,7 @@ fun GatoGameLoop(modifier: Modifier = Modifier,viewModel: GatoViewModel, navCont
             var pawRects = gameState.pawState.drawPaw(this,pawsBitmap)
 
             if(checkCollisions(pawRects,globoRect)){
-                gameState.stage = GameState.GameStage.STOPPED
+                gameState.stop()
             }
 
         }

@@ -13,7 +13,7 @@ class PawState {
     private var buildingSize : Size = Size(256f,canvasSize.height)
     private val buildings: MutableList<Paw> = emptyList<Paw>().toMutableList()
     private var initDone = false
-    private var maxSpeed : Int = 40
+    private var maxSpeed : Int = 30
     private var currentSpeed : Int = 10
     private var maxHoleSize : Float = canvasSize.height
     private var currentHoleSize : Float = canvasSize.height/4
@@ -21,18 +21,24 @@ class PawState {
     fun init(){
 
         if(canvasSize.width != 100f && !initDone ){
+            maxHoleSize = canvasSize.height/1.3f
+            currentHoleSize = canvasSize.height/4
             buildings.clear()
-            buildings.add(Paw(0,canvasSize,canvasSize.width,0f,0f,currentSpeed,canvasSize.height/4,buildingSize))
+            buildings.add(Paw(0,canvasSize,canvasSize.width,0f,0f,currentSpeed,currentHoleSize,buildingSize))
             buildings.forEach { it.reset(canvasSize.width) }
             maxHoleSize = canvasSize.height/1.3f
+            currentHoleSize = canvasSize.height/4
             initDone = true
         }
     }
 
     fun reset(){
+        maxHoleSize = canvasSize.height/1.3f
+        currentHoleSize = canvasSize.height/4
         buildings.clear()
         buildings.add(Paw(0,canvasSize,canvasSize.width,0f,0f,currentSpeed,currentHoleSize,buildingSize))
         buildings.forEach { it.reset(canvasSize.width) }
+
         initDone = true
     }
     fun changeSpeed(percent: Float) {

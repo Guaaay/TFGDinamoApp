@@ -94,7 +94,7 @@ class GatoViewModel @Inject constructor(
 
     var highScore by mutableStateOf(false)
 
-    var speedSlider by mutableStateOf(0.25f)
+    var speedSlider by mutableStateOf(0.33f)
 
     var holeWidthSlider by mutableStateOf(0.25f)
 
@@ -102,6 +102,7 @@ class GatoViewModel @Inject constructor(
 
 
     private val fps = 30L
+    private val milis = 1000L/fps
     private val _gameState = MutableStateFlow(GameState())
     val gameState: StateFlow<GameState> = _gameState
 
@@ -116,7 +117,7 @@ class GatoViewModel @Inject constructor(
 
                 while (_gameState.value.stage == GameState.GameStage.RUNNING) {
                     _gameState.value.pawState.init()
-                    delay(1000L/fps)
+                    delay(milis)
 
                     // Make a copy of gameState to work with
                     val newGameState = _gameState.value.copy()
